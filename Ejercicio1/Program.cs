@@ -10,15 +10,16 @@ using System.Threading.Tasks;
 
 namespace Ejercicio1
 {
-    internal class Program
+    internal class Program//Puerto ocupado, archivo, revisar comprob close
     {
         static bool isServerRunning = true;
         static string pass;
+        static Socket s;
 
         static void Main(string[] args)
         {
-            IPEndPoint ie = new IPEndPoint(IPAddress.Any, 11111);
-            Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPEndPoint ie = new IPEndPoint(IPAddress.Any, 16180);
+            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             s.Bind(ie);
             s.Listen(10);
             using (
@@ -33,16 +34,21 @@ namespace Ejercicio1
             Console.WriteLine("Server waiting at port {0}", ie.Port);
             while (isServerRunning)
             {
-                Socket cliente = s.Accept();
-                Thread hilo = new Thread(hiloCliente);
-                hilo.IsBackground = true;
-                hilo.Start(cliente);
+                try
+                {
+
+                    Socket cliente = s.Accept();
+                    Thread hilo = new Thread(hiloCliente);
+                    hilo.IsBackground = true;
+                    hilo.Start(cliente);
+                }
+                catch (SocketException e) when (e.ErrorCode == (int)SocketError.Interrupted)
+                {
+                    isServerRunning = false;
+                }
             }
 
-            if (!isServerRunning)
-            {
-                s.Close();
-            }
+            s.Close();
         }
 
         static void hiloCliente(object socket)
@@ -76,6 +82,7 @@ namespace Ejercicio1
                                     isServerRunning = false;
                                     sw.WriteLine("Server has stoped");
                                     sw.Flush();
+                                    s.Close();
                                 }
                                 else
                                 {
@@ -104,7 +111,7 @@ namespace Ejercicio1
                                     sw.WriteLine(DateTime.Now.ToString());
                                     break;
                                 default:
-                                    sw.WriteLine(mensaje+" is not a valid comand");
+                                    sw.WriteLine(mensaje + " is not a valid comand");
                                     break;
                             }
                             sw.Flush();

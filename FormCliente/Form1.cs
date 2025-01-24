@@ -3,35 +3,42 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
 
-namespace FormCliente
+namespace FormCliente//Titulo, icono, info textbox password, comprobar puerto e ip válidos, pass oculta, uso de tag
 {
     public partial class Form1 : Form
     {
+        string ipServer = "127.0.0.1";
+        int port = 16180;
+
         public Form1()
         {
             InitializeComponent();
         }
+
         private void BtnGestion(object sender, EventArgs e)
         {
-            const string IP_SERVER = "127.0.0.1";
             string msg;
             string userMsg;
+            string comand;
             // Indicamos servidor al que nos queremos conectar y puerto
-            IPEndPoint ie = new IPEndPoint(IPAddress.Parse(IP_SERVER), 31416);
-            Console.WriteLine("Starting client. Press a key to initconnection");
+            IPEndPoint ie = new IPEndPoint(IPAddress.Parse(ipServer), port);
+            //Console.WriteLine("Starting client. Press a key to initconnection");
 
 
-            Console.ReadKey();
-            Socket server = new Socket(AddressFamily.InterNetwork,
-            SocketType.Stream, ProtocolType.Tcp);
+            //Console.ReadKey();
+            Socket server = new Socket(
+                AddressFamily.InterNetwork,
+                SocketType.Stream,
+                ProtocolType.Tcp
+            );
             try
             {
                 // El cliente inicia la conexión haciendo petición con Connect
@@ -39,15 +46,17 @@ namespace FormCliente
             }
             catch (SocketException ex)
             {
-                Console.WriteLine("Error connection: {0}\nError code: {1}({2})",
-                ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
-                Console.ReadKey();
+                Console.WriteLine(
+                    "Error connection: {0}\nError code: {1}({2})",
+                    ex.Message,
+                    (SocketError)ex.ErrorCode,
+                    ex.ErrorCode
+                );
                 return;
             }
             // Información del servidor
             IPEndPoint ieServer = (IPEndPoint)server.RemoteEndPoint;
-            Console.WriteLine("Server on IP:{0} at port {1}", ieServer.Address,
-           ieServer.Port);
+            Console.WriteLine("Server on IP:{0} at port {1}", ieServer.Address, ieServer.Port);
             // Si la conexión se ha establecido se crean los Streams
             // y se inicial la comunicación siguiendo el protocolo
             // establecido en el servidor
@@ -55,27 +64,45 @@ namespace FormCliente
             using (StreamReader sr = new StreamReader(ns))
             using (StreamWriter sw = new StreamWriter(ns))
             {
-                // Leemos mensaje de bienvenida ya que es lo primero que envía el servidor
-                msg = sr.ReadLine();
-                Console.WriteLine(msg);
-                while (true)
+
+                comand = "";
+                switch (sender)
                 {
-                    // Lo siguiente es pedir un mensaje al usuario
-                    userMsg = Console.ReadLine();
-                    //Enviamos el mensaje de usuario al servidor
-                    // que que el servidor está esperando que le envíen algo
-                    sw.WriteLine(userMsg);
-                    sw.Flush();
-                    //Recibimos el mensaje del servidor
-                    msg = sr.ReadLine();
-                    Console.WriteLine(msg);
+                    case object x when x == btnTime:
+                        comand = "time";
+                        break;
+                    case object x when x == btnDate:
+                        comand = "date";
+                        break;
+                    case object x when x == btnAll:
+                        comand = "all";
+                        break;
+                    default:
+                        comand = "close " + txtPass.Text;
+                        break;
                 }
+
+                sw.WriteLine(comand);
+                sw.Flush();
+                lblinfo.Text = sr.ReadLine();
             }
             Console.WriteLine("Ending connection");
             //Indicamos fin de transmisión.
             server.Close();
+        }
+
+        private void btnConfig_Click(object sender, EventArgs e)
+        {
+            Form2 form = new Form2(ipServer, port);
 
 
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                ipServer = form.txtIp.Text;
+                int.TryParse(form.txtPuerto.Text, out port);
+
+                Console.WriteLine(port);
+            }
         }
     }
 }
