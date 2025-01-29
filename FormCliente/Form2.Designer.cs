@@ -50,6 +50,7 @@
             this.txtIp.Name = "txtIp";
             this.txtIp.Size = new System.Drawing.Size(100, 20);
             this.txtIp.TabIndex = 1;
+            this.txtIp.TextChanged += new System.EventHandler(this.chekValidity);
             // 
             // txtPuerto
             // 
@@ -57,6 +58,7 @@
             this.txtPuerto.Name = "txtPuerto";
             this.txtPuerto.Size = new System.Drawing.Size(100, 20);
             this.txtPuerto.TabIndex = 3;
+            this.txtPuerto.TextChanged += new System.EventHandler(this.chekValidity);
             // 
             // lbPuerto
             // 
@@ -76,6 +78,7 @@
             this.btnConfirm.TabIndex = 4;
             this.btnConfirm.Text = "Confirmar";
             this.btnConfirm.UseVisualStyleBackColor = true;
+            this.btnConfirm.Click += new System.EventHandler(this.btnConfirm_Click);
             // 
             // Form2
             // 

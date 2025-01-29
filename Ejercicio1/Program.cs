@@ -10,27 +10,59 @@ using System.Threading.Tasks;
 
 namespace Ejercicio1
 {
-    internal class Program//Puerto ocupado, archivo, revisar comprob close
+    internal class Program //Puerto ocupado, archivo, revisar comprob close
     {
         static bool isServerRunning = true;
         static string pass;
         static Socket s;
+        static int[] ports = { 135, 31416 };
+        static IPEndPoint ie;
 
         static void Main(string[] args)
         {
-            IPEndPoint ie = new IPEndPoint(IPAddress.Any, 16180);
-            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            s.Bind(ie);
-            s.Listen(10);
-            using (
-                StreamReader sr = new StreamReader(
-                    Environment.GetEnvironmentVariable("PROGRAMDATA") + "\\Server\\pass.txt"
-                )
-            )
+            bool isPortSet = false;
+            int cont = 0;
+
+
+            do
             {
-                pass = sr.ReadToEnd();
+                try
+                {
+                    ie = new IPEndPoint(IPAddress.Any, ports[cont]);
+                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    s.Bind(ie);
+                    isPortSet = true;
+                }
+                catch (Exception)
+                {
+                    cont++;
+                    isPortSet = false;
+                }
             }
-            Console.Write(pass);
+            while (!isPortSet);
+            s.Listen(10);
+
+            try
+            {
+                using (
+
+                    StreamReader sr = new StreamReader(
+                        Environment.GetEnvironmentVariable("PROGRAMDATA") + "\\Server\\pas.txt"
+                    )
+                )
+                {
+                    pass = sr.ReadToEnd();
+                }
+            }
+            catch (Exception ex) when (ex is FileNotFoundException || ex is ArgumentException)
+            {
+                Console.WriteLine("Error: {0}", ex.Message);
+                pass = "1234";
+                Console.WriteLine("Contraseña por defecto establecida");
+            }
+
+
+           // Console.Write(pass);
             Console.WriteLine("Server waiting at port {0}", ie.Port);
             while (isServerRunning)
             {
@@ -69,11 +101,10 @@ namespace Ejercicio1
                 {
                     mensaje = sr.ReadLine();
 
-                    //El mensaje es null al cerrar
                     if (mensaje != null)
                     {
                         Console.WriteLine("{0} says: {1}", ieCliente.Address, mensaje);
-                        if (mensaje.StartsWith("close"))
+                        if (mensaje.StartsWith("close "))
                         {
                             if (mensaje.ToString().Length > 6)
                             {

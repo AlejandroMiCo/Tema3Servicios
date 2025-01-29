@@ -11,16 +11,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FormCliente//Titulo, icono, info textbox password, comprobar puerto e ip válidos, pass oculta, uso de tag
+namespace FormCliente   // Titulo, icono, info textbox password, pass oculta        HECHOS
+                        // comprobar puerto e ip válidos, uso de tag
 {
-    public partial class Form1 : Form
+    public partial class ClienteSuperChulo : Form
     {
-        string ipServer = "127.0.0.1";
-        int port = 16180;
+        public string ipServer = IPAddress.Loopback.ToString();
+        public int port = 16180;
+        IPEndPoint ie;
 
-        public Form1()
+        public ClienteSuperChulo()
         {
             InitializeComponent();
+            ie = new IPEndPoint(IPAddress.Parse(ipServer), port);
         }
 
         private void BtnGestion(object sender, EventArgs e)
@@ -28,12 +31,7 @@ namespace FormCliente//Titulo, icono, info textbox password, comprobar puerto e 
             string msg;
             string userMsg;
             string comand;
-            // Indicamos servidor al que nos queremos conectar y puerto
-            IPEndPoint ie = new IPEndPoint(IPAddress.Parse(ipServer), port);
-            //Console.WriteLine("Starting client. Press a key to initconnection");
 
-
-            //Console.ReadKey();
             Socket server = new Socket(
                 AddressFamily.InterNetwork,
                 SocketType.Stream,
@@ -41,45 +39,30 @@ namespace FormCliente//Titulo, icono, info textbox password, comprobar puerto e 
             );
             try
             {
-                // El cliente inicia la conexión haciendo petición con Connect
                 server.Connect(ie);
             }
             catch (SocketException ex)
             {
-                Console.WriteLine(
+                lblinfo.Text = String.Format(
                     "Error connection: {0}\nError code: {1}({2})",
                     ex.Message,
                     (SocketError)ex.ErrorCode,
-                    ex.ErrorCode
-                );
+                    ex.ErrorCode)
+                ;
                 return;
             }
-            // Información del servidor
             IPEndPoint ieServer = (IPEndPoint)server.RemoteEndPoint;
             Console.WriteLine("Server on IP:{0} at port {1}", ieServer.Address, ieServer.Port);
-            // Si la conexión se ha establecido se crean los Streams
-            // y se inicial la comunicación siguiendo el protocolo
-            // establecido en el servidor
             using (NetworkStream ns = new NetworkStream(server))
             using (StreamReader sr = new StreamReader(ns))
             using (StreamWriter sw = new StreamWriter(ns))
             {
 
-                comand = "";
-                switch (sender)
+                comand = ((Button)sender).Tag.ToString();
+
+                if (((Button)sender) == btnClose)
                 {
-                    case object x when x == btnTime:
-                        comand = "time";
-                        break;
-                    case object x when x == btnDate:
-                        comand = "date";
-                        break;
-                    case object x when x == btnAll:
-                        comand = "all";
-                        break;
-                    default:
-                        comand = "close " + txtPass.Text;
-                        break;
+                    comand += " " + txtPass.Text;
                 }
 
                 sw.WriteLine(comand);
@@ -87,21 +70,17 @@ namespace FormCliente//Titulo, icono, info textbox password, comprobar puerto e 
                 lblinfo.Text = sr.ReadLine();
             }
             Console.WriteLine("Ending connection");
-            //Indicamos fin de transmisión.
             server.Close();
         }
 
         private void btnConfig_Click(object sender, EventArgs e)
         {
-            Form2 form = new Form2(ipServer, port);
-
+            Form2 form = new Form2(ie);
 
             if (form.ShowDialog() == DialogResult.OK)
             {
                 ipServer = form.txtIp.Text;
                 int.TryParse(form.txtPuerto.Text, out port);
-
-                Console.WriteLine(port);
             }
         }
     }
