@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Ejercicio1
 {
-    internal class Program //Puerto ocupado, archivo, revisar comprob close
+    internal class Program //Puerto ocupado,    
     {
         static bool isServerRunning = true;
         static string pass;
         static Socket s;
-        static int[] ports = { 135, 31416 };
+        static int[] ports = { 135, 135 };
         static IPEndPoint ie;
 
         static void Main(string[] args)
@@ -26,28 +26,40 @@ namespace Ejercicio1
 
             do
             {
-                try
+                if (cont < ports.Length)
                 {
-                    ie = new IPEndPoint(IPAddress.Any, ports[cont]);
-                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                    s.Bind(ie);
-                    isPortSet = true;
+                    try
+                    {
+                        ie = new IPEndPoint(IPAddress.Any, ports[cont]);
+                        s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        s.Bind(ie);
+                        isPortSet = true;
+                    }
+                    catch (Exception ex) when (ex is SocketException || ex is ObjectDisposedException)
+                    {
+                        isPortSet = false;
+                    }
                 }
-                catch (Exception)
-                {
-                    cont++;
-                    isPortSet = false;
-                }
+                cont++;
             }
-            while (!isPortSet);
-            s.Listen(10);
+            while (!isPortSet && cont < ports.Length); 
+
+            if (!isPortSet)
+            {
+                s.Close();
+                isServerRunning = false;
+            }
+            else
+            {
+                s.Listen(10);
+            }
 
             try
             {
                 using (
 
                     StreamReader sr = new StreamReader(
-                        Environment.GetEnvironmentVariable("PROGRAMDATA") + "\\Server\\pas.txt"
+                        Environment.GetEnvironmentVariable("PROGRAMDATA") + "\\Server\\pass.txt"
                     )
                 )
                 {
@@ -62,13 +74,12 @@ namespace Ejercicio1
             }
 
 
-           // Console.Write(pass);
+            // Console.Write(pass);
             Console.WriteLine("Server waiting at port {0}", ie.Port);
             while (isServerRunning)
             {
                 try
                 {
-
                     Socket cliente = s.Accept();
                     Thread hilo = new Thread(hiloCliente);
                     hilo.IsBackground = true;
@@ -104,6 +115,7 @@ namespace Ejercicio1
                     if (mensaje != null)
                     {
                         Console.WriteLine("{0} says: {1}", ieCliente.Address, mensaje);
+
                         if (mensaje.StartsWith("close "))
                         {
                             if (mensaje.ToString().Length > 6)

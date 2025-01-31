@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form2));
             this.lbIp = new System.Windows.Forms.Label();
             this.txtIp = new System.Windows.Forms.TextBox();
             this.txtPuerto = new System.Windows.Forms.TextBox();
@@ -90,8 +91,9 @@
             this.Controls.Add(this.lbPuerto);
             this.Controls.Add(this.txtIp);
             this.Controls.Add(this.lbIp);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form2";
-            this.Text = "Form2";
+            this.Text = "ModalMegaGuay";
             this.ResumeLayout(false);
             this.PerformLayout();
 

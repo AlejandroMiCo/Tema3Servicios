@@ -11,8 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FormCliente   // Titulo, icono, info textbox password, pass oculta        HECHOS
-                        // comprobar puerto e ip válidos, uso de tag
+namespace FormCliente   // Titulo, icono,
+                        // comprobar puerto 
 {
     public partial class ClienteSuperChulo : Form
     {

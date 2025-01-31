@@ -15,7 +15,7 @@ namespace FormCliente
     {
         IPEndPoint ie;
         IPAddress ip;
-        short port;
+        ushort port;
 
         public Form2(IPEndPoint ie)
         {
@@ -29,7 +29,7 @@ namespace FormCliente
         public void chekValidity(object sender, EventArgs e)
         {
             bool isValidIp = IPAddress.TryParse(txtIp.Text, out ip);
-            bool isValidPort = short.TryParse(txtPuerto.Text, out port);
+            bool isValidPort = ushort.TryParse(txtPuerto.Text, out port);
 
             if (isValidIp && isValidPort)
             {
